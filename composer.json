@@ -32,6 +32,7 @@
         "name": "Blitz Netlify Deployer",
         "developer": "PutYourLightsOn",
         "developerUrl": "https://putyourlightson.com/",
+        "documentationUrl": "https://putyourlightson.com/plugins/blitz",
         "changelogUrl": "https://raw.githubusercontent.com/putyourlightson/craft-blitz-netlify/v1/CHANGELOG.md"
     }
 }

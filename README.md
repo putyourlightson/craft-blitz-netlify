@@ -1,6 +1,6 @@
 # Blitz Netlify Deployer for Craft CMS
 
-The Netlify Deployer allows the [Blitz](https://putyourlightson.com/plugins/blitz) plugin for [Craft CMS](https://craftcms.com/) to intelligently deploy cached files.
+The Netlify Deployer allows the [Blitz](https://putyourlightson.com/plugins/blitz) plugin for [Craft CMS](https://craftcms.com/) to deploy cached files directly to Netlify sites.
 
 ## Usage
 
@@ -13,7 +13,7 @@ composer require putyourlightson/craft-blitz-netlify
 Then add the class to the `driverTypes` config setting in `config/blitz.php`.
 
 ```
-// The driver type classes to add to the plugin’s default driver types.
+// The deployer type classes to add to the plugin’s default deployer types.
 'deployerTypes' => [
     'putyourlightson\blitz\drivers\deployers\GitDeployer',
     'putyourlightson\blitznetlify\NetlifyDeployer',
@@ -35,6 +35,6 @@ You can then select the deployer and settings either in the control panel or in 
 
 ## Documentation
 
-Read the documentation at [putyourlightson.com/plugins/blitz](https://putyourlightson.com/plugins/blitz#custom-deployers).
+Read the documentation at [putyourlightson.com/plugins/blitz](https://putyourlightson.com/plugins/blitz#remote-deployers).
 
 Created by [PutYourLightsOn](https://putyourlightson.com/).
