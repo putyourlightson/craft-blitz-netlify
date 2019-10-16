@@ -15,7 +15,6 @@ use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\View;
 use League\OAuth2\Client\Grant\AuthorizationCode;
-use League\OAuth2\Client\Provider\GenericProvider;
 use League\OAuth2\Client\Token\AccessToken;
 use putyourlightson\blitz\Blitz;
 use putyourlightson\blitz\drivers\deployers\BaseDeployer;
@@ -23,6 +22,7 @@ use putyourlightson\blitz\events\RefreshCacheEvent;
 use putyourlightson\blitz\helpers\DeployerHelper;
 use putyourlightson\blitz\helpers\SiteUriHelper;
 use putyourlightson\blitz\records\DriverDataRecord;
+use Putyourlightson\OAuth2\Client\Provider\Netlify;
 use yii\base\ErrorException;
 use yii\base\Event;
 use yii\base\InvalidArgumentException;
@@ -30,6 +30,8 @@ use yii\web\ForbiddenHttpException;
 use ZipArchive;
 
 /**
+ * @property array $netlifySiteOptions
+ * @property bool $isAuthorized
  * @property mixed $settingsHtml
  */
 class NetlifyDeployer extends BaseDeployer
@@ -63,7 +65,7 @@ class NetlifyDeployer extends BaseDeployer
     private $_accessToken;
 
     /**
-     * @var GenericProvider|null
+     * @var Netlify|null
      */
     private $_provider;
 
@@ -323,18 +325,15 @@ class NetlifyDeployer extends BaseDeployer
     /**
      * Returns the provider.
      *
-     * @return GenericProvider
+     * @return Netlify
      */
     private function _getProvider()
     {
         if ($this->_provider === null) {
-            $this->_provider = new GenericProvider([
+            $this->_provider = new Netlify([
                 'clientId' => Craft::parseEnv($this->clientId),
                 'clientSecret' => Craft::parseEnv($this->clientSecret),
                 'redirectUri' => UrlHelper::cpUrl('settings/plugins/blitz'),
-                'urlAuthorize' => 'http://app.netlify.com/authorize',
-                'urlAccessToken' => 'https://api.netlify.com/oauth/token',
-                'urlResourceOwnerDetails' => '',
             ]);
         }
 
