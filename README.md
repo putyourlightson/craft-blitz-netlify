@@ -35,6 +35,6 @@ You can then select the deployer and settings either in the control panel or in 
 
 ## Documentation
 
-Read the documentation at [putyourlightson.com/plugins/blitz/docs](https://putyourlightson.com/craft-plugins/blitz/docs#/?id=custom-deployers).
+Read the documentation at [putyourlightson.com/plugins/blitz](https://putyourlightson.com/plugins/blitz#custom-deployers).
 
 Created by [PutYourLightsOn](https://putyourlightson.com/).

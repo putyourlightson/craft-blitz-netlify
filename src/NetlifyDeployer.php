@@ -131,7 +131,7 @@ class NetlifyDeployer extends BaseDeployer
     public function rules()
     {
         return [
-            [['clientId', 'clientSecret'], 'required'],
+            [['clientId', 'clientSecret', 'deployMessage'], 'required'],
         ];
     }
 

@@ -44,6 +44,15 @@
 {% endif %}
 
 
+{{ forms.textField({
+    label: "Deploy Message"|t('blitz'),
+    instructions: "The deploy message will be parsed for twig tags."|t('blitz'),
+    name: 'deployMessage',
+    value: deployer.deployMessage,
+    errors: deployer.getErrors('deployMessage'),
+    required: true,
+}) }}
+
 {{ forms.autosuggestField({
     label: "Client ID"|t('blitz'),
     instructions: "The OAuth application client ID in Netlify."|t('blitz'),
@@ -64,6 +73,9 @@
     required: true,
 }) }}
 
+<p class="light">
+    Get a client ID and secret by creating an <a href="https://app.netlify.com/user/applications" target="_blank">OAuth app</a>, setting the redirect URI to: <code>{{ cpUrl('settings/plugins/blitz') }}</code>
+</p>
 
 {% set disabled = not deployer.clientId or not deployer.clientSecret %}
 <a href="?authorize=netlify" class="btn submit" {{ disabled ? 'disabled' }}>
@@ -74,6 +86,3 @@
     {% endif %}
 </a>
 
-<p class="light">
-    Create an <a href="https://app.netlify.com/user/applications" target="_blank">OAuth app</a>, setting the redirect URI to: <code>{{ cpUrl('settings/plugins/blitz') }}</code>
-</p>
