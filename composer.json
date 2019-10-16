@@ -1,0 +1,37 @@
+{
+    "name": "putyourlightson/craft-blitz-netlify",
+    "description": "Netlify deployer for the Blitz plugin for Craft CMS.",
+    "version": "1.0.0",
+    "type": "blitz-deployer",
+    "license": "proprietary",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "plugin",
+        "cache",
+        "blitz",
+        "deployer"
+    ],
+    "require": {
+        "craftcms/cms": "^3.1.0",
+        "putyourlightson/craft-blitz": "^3.0.0",
+        "league/oauth2-client": "^2.4.1"
+    },
+    "autoload": {
+        "psr-4": {
+          "putyourlightson\\blitznetlify\\": "src/"
+        }
+    },
+    "support": {
+        "docs": "https://github.com/putyourlightson/craft-blitz-netlify",
+        "source": "https://github.com/putyourlightson/craft-blitz-netlify",
+        "issues": "https://github.com/putyourlightson/craft-blitz-netlify/issues"
+    },
+    "extra": {
+        "name": "Blitz Netlify Deployer",
+        "developer": "PutYourLightsOn",
+        "developerUrl": "https://putyourlightson.com/",
+        "changelogUrl": "https://raw.githubusercontent.com/putyourlightson/craft-blitz-netlify/v1/CHANGELOG.md"
+    }
+}

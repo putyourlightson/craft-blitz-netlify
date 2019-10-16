@@ -1,0 +1,79 @@
+{% import "_includes/forms" as forms %}
+
+
+{% if deployer.getIsAuthorized() %}
+
+    {% set cols = {
+        site: {
+            type: 'heading',
+            heading: "Site"|t('blitz'),
+            thin: true,
+        },
+        siteId: {
+            type: 'select',
+            heading: "Netlify Site"|t('blitz'),
+            options: deployer.getNetlifySiteOptions(),
+        },
+    } %}
+
+    {% set rows = [] %}
+    {% for site in craft.app.sites.getAllSites() %}
+        {% set rows = rows|merge({
+            (site.uid): {
+                site: site.name,
+                siteId: deployer.netlifySites[site.uid]['siteId']|default(''),
+            }
+        }) %}
+    {% endfor %}
+
+    {% set info %}
+        <span class="info">{{ 'Cached files will be commited and pushed to existing Git repositories using the specified settings. Git must already be installed on the server and the repositories must already exist in the provided paths. <a href="{url}" class="go" target="_blank">Learn more</a>'|t('blitz', {url: 'https://putyourlightson.com/plugins/blitz#remote-deployment'})|raw }}</span>
+    {% endset %}
+    {{ forms.editableTableField({
+        label: "Netlify Sites"|t('blitz'),
+        instructions: "Choose which netlify site to deploy to for each site."|t('blitz') ~ info,
+        name: 'netlifySites',
+        id: 'netlifySites',
+        cols: cols,
+        rows: rows,
+        staticRows: true,
+        errors: deployer.getErrors('netlifySites'),
+        required: true,
+    }) }}
+
+{% endif %}
+
+
+{{ forms.autosuggestField({
+    label: "Client ID"|t('blitz'),
+    instructions: "The OAuth application client ID in Netlify."|t('blitz'),
+    suggestEnvVars: true,
+    name: 'clientId',
+    value: deployer.clientId,
+    errors: deployer.getErrors('clientId'),
+    required: true,
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Secret"|t('blitz'),
+    instructions: "The OAuth application secret in Netlify"|t('blitz'),
+    suggestEnvVars: true,
+    name: 'clientSecret',
+    value: deployer.clientSecret,
+    errors: deployer.getErrors('clientSecret'),
+    required: true,
+}) }}
+
+
+{% set disabled = not deployer.clientId or not deployer.clientSecret %}
+<a href="?authorize=netlify" class="btn submit" {{ disabled ? 'disabled' }}>
+    {% if not deployer.getIsAuthorized() %}
+        {{ "Authorize Netlify"|t('blitz') }}
+    {% else %}
+        {{ "Reauthorize Netlify"|t('blitz') }}
+    {% endif %}
+</a>
+
+<p class="light">
+    Create an <a href="https://app.netlify.com/user/applications" target="_blank">OAuth app</a>, setting the redirect URI to: <code>{{ cpUrl('settings/plugins/blitz') }}</code>
+</p>
