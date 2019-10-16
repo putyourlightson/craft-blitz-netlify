@@ -229,23 +229,12 @@ class NetlifyDeployer extends BaseDeployer
                 ->post($this->_apiUrl.'sites/'.$netlifySiteId.'/deploys', [
                     'headers' => [
                         'Authorization' => 'Bearer '.$this->_accessToken->getToken(),
+                        'Content-Type' => 'application/zip',
                     ],
                     'query' => [
                         'title' => $deployMessage,
                     ],
-                    'json' => [
-                        'draft' => false,
-                    ],
-                    'multipart' => [
-                        [
-                            'headers' => [
-                                'Content-Type' => 'application/zip',
-                            ],
-                            'name' => 'FileContents',
-                            'contents' => file_get_contents($path.$filename),
-                            'filename' => $filename,
-                        ],
-                    ],
+                    'body' => fopen($path.$filename, 'r'),
                 ]);
         }
     }
@@ -285,7 +274,7 @@ class NetlifyDeployer extends BaseDeployer
 
         foreach ($netlifySites as $netlifySite) {
             $options[] = [
-                'label' => $netlifySite['url'],
+                'label' => $netlifySite['name'].' ('.$netlifySite['url'].')',
                 'value' => $netlifySite['id'],
             ];
         }
@@ -300,8 +289,12 @@ class NetlifyDeployer extends BaseDeployer
     {
         $request = Craft::$app->getRequest();
 
-        if ($request->get('authorize') == 'netlify') {
+        // Check for actions
+        if ($request->get('netlify') == 'authorize') {
             $this->_oauthConnect();
+        }
+        elseif ($request->get('netlify') == 'authorized') {
+            Craft::$app->getSession()->setNotice(Craft::t('blitz', 'Netlify account successfully authorized.'));
         }
 
         // Check if a code was sent
@@ -355,12 +348,10 @@ class NetlifyDeployer extends BaseDeployer
     {
         $provider = $this->_getProvider();
 
-        // Store state to verify OAuth callback
-        Craft::$app->getSession()->set('blitz.netlify.state', $provider->getState());
+        $authorizationUrl = $provider->getAuthorizationUrl();
 
-        $authorizationUrl = $provider->getAuthorizationUrl([
-            'state' => $provider->getState(),
-        ]);
+        // Store state to verify OAuth callback (must come after call to `getAuthorizationUrl()`)
+        Craft::$app->getSession()->set('blitz.netlify.state', $provider->getState());
 
         Craft::$app->getResponse()->redirect($authorizationUrl);
     }
@@ -386,18 +377,17 @@ class NetlifyDeployer extends BaseDeployer
         ]);
 
         // Save access token data to DB
-        $driverDataRecord = DriverDataRecord::findOne(['driver' => self::class]);
+        $values = ['driver' => self::class];
+        $driverDataRecord = DriverDataRecord::findOne($values);
 
         if ($driverDataRecord === null) {
-            $driverDataRecord = new DriverDataRecord(['driver' => self::class]);
+            $driverDataRecord = new DriverDataRecord($values);
         }
 
         $driverDataRecord->data = ['accessToken' => $accessToken];
         $driverDataRecord->save();
 
-        Craft::$app->getSession()->setNotice(Craft::t('blitz', 'Netlify account successfully authorized.'));
-
-        Craft::$app->getResponse()->redirect('blitz#deployment');
+        Craft::$app->getResponse()->redirect('blitz?netlify=authorized#deployment');
     }
 
     /**

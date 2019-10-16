@@ -78,7 +78,7 @@
 </p>
 
 {% set disabled = not deployer.clientId or not deployer.clientSecret %}
-<a href="?authorize=netlify" class="btn submit" {{ disabled ? 'disabled' }}>
+<a href="?netlify=authorize" class="btn submit" {{ disabled ? 'disabled' }}>
     {% if not deployer.getIsAuthorized() %}
         {{ "Authorize Netlify"|t('blitz') }}
     {% else %}
