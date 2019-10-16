@@ -1,4 +1,4 @@
-# Release Notes for Blitz CloudFront Purger
+# Release Notes for Blitz Netlify Deployer
 
-## 1.0.0 - 2019-04-15
+## 1.0.0 - 2019-10-16
 - Initial release.
