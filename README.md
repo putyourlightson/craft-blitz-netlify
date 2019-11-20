@@ -2,7 +2,7 @@
 
 The Netlify Deployer allows the [Blitz](https://putyourlightson.com/plugins/blitz) plugin for [Craft CMS](https://craftcms.com/) to deploy cached files directly to Netlify sites.
 
-> While the Netlify Deployer provides a quick and easy setup, the Git Deployer that ships with Blitz is the recommended way of deploying full sites, including images and other static assets, to Netlify.
+> While the Netlify Deployer provides a quick and easy setup, the Git Deployer that ships with Blitz is the recommended way of deploying full websites, including images and other static assets, to Netlify sites.
 
 ## Usage
 
