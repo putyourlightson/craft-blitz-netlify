@@ -4,6 +4,14 @@ The Netlify Deployer allows the [Blitz](https://putyourlightson.com/plugins/blit
 
 > While the Netlify Deployer provides a quick and easy setup, the Git Deployer that ships with Blitz is the recommended way of deploying full websites, including images and other static assets, to Netlify sites.
 
+## License
+
+This plugin is licensed for free under the attached License terms.
+
+## Requirements
+
+Blitz 3.0.2 or later.
+
 ## Usage
 
 Install the deployer using composer.
