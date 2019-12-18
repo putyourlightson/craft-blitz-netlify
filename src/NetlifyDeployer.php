@@ -36,6 +36,17 @@ use ZipArchive;
  */
 class NetlifyDeployer extends BaseDeployer
 {
+    // Static
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('blitz', 'Netlify Deployer');
+    }
+
     // Properties
     // =========================================================================
 
@@ -73,17 +84,6 @@ class NetlifyDeployer extends BaseDeployer
      * @var string
      */
     private $_apiUrl = 'https://api.netlify.com/api/v1/';
-
-    // Static
-    // =========================================================================
-
-    /**
-     * @inheritdoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('blitz', 'Netlify Deployer');
-    }
 
     // Public Methods
     // =========================================================================
@@ -135,30 +135,6 @@ class NetlifyDeployer extends BaseDeployer
         return [
             [['clientId', 'clientSecret', 'deployMessage'], 'required'],
         ];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function deployUris(array $siteUris, int $delay = null, callable $setProgressHandler = null)
-    {
-        $event = new RefreshCacheEvent(['siteUris' => $siteUris]);
-        $this->trigger(self::EVENT_BEFORE_DEPLOY, $event);
-
-        if (!$event->isValid) {
-            return;
-        }
-
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
-            $this->deployUrisWithProgress($siteUris, $setProgressHandler);
-        }
-        else {
-            DeployerHelper::addDeployerJob($siteUris, 'deployUrisWithProgress', $delay);
-        }
-
-        if ($this->hasEventHandlers(self::EVENT_AFTER_DEPLOY)) {
-            $this->trigger(self::EVENT_AFTER_DEPLOY, $event);
-        }
     }
 
     /**
