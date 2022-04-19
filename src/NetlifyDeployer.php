@@ -9,6 +9,7 @@ use Craft;
 use craft\behaviors\EnvAttributeParserBehavior;
 use craft\db\Table;
 use craft\events\RegisterTemplateRootsEvent;
+use craft\helpers\App;
 use craft\helpers\Db;
 use craft\helpers\FileHelper;
 use craft\helpers\Json;
@@ -18,8 +19,6 @@ use League\OAuth2\Client\Grant\AuthorizationCode;
 use League\OAuth2\Client\Token\AccessToken;
 use putyourlightson\blitz\Blitz;
 use putyourlightson\blitz\drivers\deployers\BaseDeployer;
-use putyourlightson\blitz\events\RefreshCacheEvent;
-use putyourlightson\blitz\helpers\DeployerHelper;
 use putyourlightson\blitz\helpers\SiteUriHelper;
 use putyourlightson\blitz\records\DriverDataRecord;
 use Putyourlightson\OAuth2\Client\Provider\Netlify;
@@ -30,15 +29,12 @@ use yii\web\ForbiddenHttpException;
 use ZipArchive;
 
 /**
- * @property array $netlifySiteOptions
- * @property bool $isAuthorized
- * @property mixed $settingsHtml
+ * @property-read bool $isAuthorized
+ * @property-read array[] $netlifySiteOptions
+ * @property-read null|string $settingsHtml
  */
 class NetlifyDeployer extends BaseDeployer
 {
-    // Static
-    // =========================================================================
-
     /**
      * @inheritdoc
      */
@@ -47,51 +43,45 @@ class NetlifyDeployer extends BaseDeployer
         return Craft::t('blitz', 'Netlify Deployer');
     }
 
-    // Properties
-    // =========================================================================
-
     /**
      * @var array
      */
-    public $netlifySites = [];
-
-    /**
-     * @var string|null
-     */
-    public $clientId;
-
-    /**
-     * @var string|null
-     */
-    public $clientSecret;
+    public array $netlifySites = [];
 
     /**
      * @var string
      */
-    public $deployMessage = 'Blitz auto deploy';
+    public string $clientId = '';
+
+    /**
+     * @var string
+     */
+    public string $clientSecret = '';
+
+    /**
+     * @var string
+     */
+    public string $deployMessage = 'Blitz auto deploy';
 
     /**
      * @var AccessToken|null
      */
-    private $_accessToken;
+    private ?AccessToken $_accessToken = null;
 
     /**
      * @var Netlify|null
      */
-    private $_provider;
+    private ?Netlify $_provider = null;
 
     /**
      * @var string
      */
-    private $_apiUrl = 'https://api.netlify.com/api/v1/';
-
-    // Public Methods
-    // =========================================================================
+    private string $_apiUrl = 'https://api.netlify.com/api/v1/';
 
     /**
      * @inheritdoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -109,7 +99,7 @@ class NetlifyDeployer extends BaseDeployer
         // Register CP template root
         Event::on(View::class, View::EVENT_REGISTER_CP_TEMPLATE_ROOTS,
             function(RegisterTemplateRootsEvent $event) {
-                $event->roots['blitz-netlify'] = __DIR__.'/templates/';
+                $event->roots['blitz-netlify'] = __DIR__ . '/templates/';
             }
         );
     }
@@ -130,26 +120,34 @@ class NetlifyDeployer extends BaseDeployer
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function attributeLabels(): array
     {
         return [
-            [['clientId', 'clientSecret', 'deployMessage'], 'required'],
+            'clientId' => Craft::t('blitz', 'Client ID'),
+            'clientSecret' => Craft::t('blitz', 'Secret'),
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function rules(): array
+    {
+        return [
+            [['clientId', 'clientSecret'], 'required'],
         ];
     }
 
     /**
      * Deploys site URIs with progress.
-     *
-     * @param array $siteUris
-     * @param callable|null $setProgressHandler
      */
-    public function deployUrisWithProgress(array $siteUris, callable $setProgressHandler = null)
+    public function deployUrisWithProgress(array $siteUris, callable $setProgressHandler = null): void
     {
         $count = 0;
         $total = 0;
         $label = 'Deploying {count} of {total} files.';
 
-        $temporaryPath = Craft::$app->getPath()->getTempPath().'/blitz-netlify/'.time();
+        $temporaryPath = Craft::$app->getPath()->getTempPath() . '/blitz-netlify/' . time();
         $deployGroupedSiteUris = [];
         $groupedSiteUris = SiteUriHelper::getSiteUrisGroupedBySite($siteUris);
 
@@ -175,11 +173,11 @@ class NetlifyDeployer extends BaseDeployer
 
         foreach ($deployGroupedSiteUris as $siteUid => $siteUris) {
             $netlifySiteId = $this->netlifySites[$siteUid]['siteId'];
-            $path = $temporaryPath.'/'.$netlifySiteId.'/';
+            $path = $temporaryPath . '/' . $netlifySiteId . '/';
             $filename = 'deploy.zip';
 
             $zip = new ZipArchive();
-            $zip->open($path.$filename, ZipArchive::CREATE);
+            $zip->open($path . $filename, ZipArchive::CREATE);
 
             foreach ($siteUris as $siteUri) {
                 $count++;
@@ -192,10 +190,10 @@ class NetlifyDeployer extends BaseDeployer
                     continue;
                 }
 
-                $filePath = FileHelper::normalizePath($path.$siteUri->uri.'/index.html');
+                $filePath = FileHelper::normalizePath($path . $siteUri->uri . '/index.html');
                 $this->_save($value, $filePath);
 
-                $zip->addFile($filePath, $siteUri->uri.'/index.html');
+                $zip->addFile($filePath, $siteUri->uri . '/index.html');
             }
 
             $zip->close();
@@ -204,15 +202,15 @@ class NetlifyDeployer extends BaseDeployer
             $deployMessage = Craft::$app->getView()->renderString($this->deployMessage);
 
             Craft::createGuzzleClient()
-                ->post($this->_apiUrl.'sites/'.$netlifySiteId.'/deploys', [
+                ->post($this->_apiUrl . 'sites/' . $netlifySiteId . '/deploys', [
                     'headers' => [
-                        'Authorization' => 'Bearer '.$this->_accessToken->getToken(),
+                        'Authorization' => 'Bearer ' . $this->_accessToken->getToken(),
                         'Content-Type' => 'application/zip',
                     ],
                     'query' => [
                         'title' => $deployMessage,
                     ],
-                    'body' => fopen($path.$filename, 'r'),
+                    'body' => fopen($path . $filename, 'r'),
                 ]);
         }
     }
@@ -244,15 +242,15 @@ class NetlifyDeployer extends BaseDeployer
         }
 
         $response = Craft::createGuzzleClient()
-            ->get($this->_apiUrl.'sites', [
-                'query' => ['access_token' => $this->_accessToken->getToken()]
+            ->get($this->_apiUrl . 'sites', [
+                'query' => ['access_token' => $this->_accessToken->getToken()],
             ]);
 
         $netlifySites = Json::decodeIfJson($response->getBody()->getContents());
 
         foreach ($netlifySites as $netlifySite) {
             $options[] = [
-                'label' => $netlifySite['name'].' ('.$netlifySite['url'].')',
+                'label' => $netlifySite['name'] . ' (' . $netlifySite['url'] . ')',
                 'value' => $netlifySite['id'],
             ];
         }
@@ -288,27 +286,22 @@ class NetlifyDeployer extends BaseDeployer
     /**
      * @inheritdoc
      */
-    public function getSettingsHtml()
+    public function getSettingsHtml(): ?string
     {
         return Craft::$app->getView()->renderTemplate('blitz-netlify/settings', [
             'deployer' => $this,
         ]);
     }
 
-    // Private Methods
-    // =========================================================================
-
     /**
      * Returns the provider.
-     *
-     * @return Netlify
      */
-    private function _getProvider()
+    private function _getProvider(): Netlify
     {
         if ($this->_provider === null) {
             $this->_provider = new Netlify([
-                'clientId' => Craft::parseEnv($this->clientId),
-                'clientSecret' => Craft::parseEnv($this->clientSecret),
+                'clientId' => App::parseEnv($this->clientId),
+                'clientSecret' => App::parseEnv($this->clientSecret),
                 'redirectUri' => UrlHelper::cpUrl('settings/plugins/blitz'),
             ]);
         }
@@ -376,11 +369,8 @@ class NetlifyDeployer extends BaseDeployer
         try {
             FileHelper::writeToFile($filePath, $value);
         }
-        catch (ErrorException $e) {
-            Blitz::$plugin->log($e->getMessage(), [], 'error');
-        }
-        catch (InvalidArgumentException $e) {
-            Blitz::$plugin->log($e->getMessage(), [], 'error');
+        catch (ErrorException|InvalidArgumentException $exception) {
+            Blitz::$plugin->log($exception->getMessage(), [], 'error');
         }
     }
 }
