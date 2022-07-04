@@ -1,11 +1,11 @@
 # Release Notes for Blitz Netlify Deployer
 
-## 2.0.0-beta.1 - 2022-04-19
+## 2.0.0 - 2022-07-04
 ### Added
 - Added compatibility with Craft 4.
 
 ### Changed
-- Changed minimum required version of Blitz to 4.0.0-beta.2.
+- Changed minimum required version of Blitz to 4.0.0.
 
 ## 1.0.1 - 2019-12-18
 ### Changed

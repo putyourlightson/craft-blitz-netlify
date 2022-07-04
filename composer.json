@@ -1,7 +1,7 @@
 {
     "name": "putyourlightson/craft-blitz-netlify",
     "description": "Netlify deployer for the Blitz plugin for Craft CMS.",
-    "version": "2.0.0-beta.1",
+    "version": "2.0.0",
     "type": "blitz-deployer",
     "license": "proprietary",
     "keywords": [
@@ -15,8 +15,9 @@
     ],
     "require": {
         "php": "^8.0.2",
-        "craftcms/cms": "^4.0.0-beta.1",
-        "putyourlightson/craft-blitz": "^4.0.0-beta.2",
+        "ext-zip": "*",
+        "craftcms/cms": "^4.0",
+        "putyourlightson/craft-blitz": "^4.0",
         "league/oauth2-client": "^2.0",
         "putyourlightson/oauth2-netlify": "^1.0"
     },

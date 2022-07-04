@@ -17,6 +17,7 @@ use craft\helpers\UrlHelper;
 use craft\web\View;
 use League\OAuth2\Client\Grant\AuthorizationCode;
 use League\OAuth2\Client\Token\AccessToken;
+use Psr\Log\LogLevel;
 use putyourlightson\blitz\Blitz;
 use putyourlightson\blitz\drivers\deployers\BaseDeployer;
 use putyourlightson\blitz\helpers\SiteUriHelper;
@@ -370,7 +371,7 @@ class NetlifyDeployer extends BaseDeployer
             FileHelper::writeToFile($filePath, $value);
         }
         catch (ErrorException|InvalidArgumentException $exception) {
-            Blitz::$plugin->log($exception->getMessage(), [], 'error');
+            Blitz::$plugin->log($exception->getMessage(), [], LogLevel::ERROR);
         }
     }
 }
