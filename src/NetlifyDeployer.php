@@ -67,17 +67,17 @@ class NetlifyDeployer extends BaseDeployer
     /**
      * @var AccessToken|null
      */
-    private ?AccessToken $_accessToken = null;
+    private ?AccessToken $accessToken = null;
 
     /**
      * @var Netlify|null
      */
-    private ?Netlify $_provider = null;
+    private ?Netlify $provider = null;
 
     /**
      * @var string
      */
-    private string $_apiUrl = 'https://api.netlify.com/api/v1/';
+    private string $apiUrl = 'https://api.netlify.com/api/v1/';
 
     /**
      * @inheritdoc
@@ -93,7 +93,7 @@ class NetlifyDeployer extends BaseDeployer
             $data = Json::decodeIfJson($driverDataRecord->data);
 
             if (!empty($data['accessToken'])) {
-                $this->_accessToken = new AccessToken($data['accessToken']);
+                $this->accessToken = new AccessToken($data['accessToken']);
             }
         }
 
@@ -192,7 +192,7 @@ class NetlifyDeployer extends BaseDeployer
                 }
 
                 $filePath = FileHelper::normalizePath($path . $siteUri->uri . '/index.html');
-                $this->_save($value, $filePath);
+                $this->save($value, $filePath);
 
                 $zip->addFile($filePath, $siteUri->uri . '/index.html');
             }
@@ -203,9 +203,9 @@ class NetlifyDeployer extends BaseDeployer
             $deployMessage = Craft::$app->getView()->renderString($this->deployMessage);
 
             Craft::createGuzzleClient()
-                ->post($this->_apiUrl . 'sites/' . $netlifySiteId . '/deploys', [
+                ->post($this->apiUrl . 'sites/' . $netlifySiteId . '/deploys', [
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $this->_accessToken->getToken(),
+                        'Authorization' => 'Bearer ' . $this->accessToken->getToken(),
                         'Content-Type' => 'application/zip',
                     ],
                     'query' => [
@@ -223,7 +223,7 @@ class NetlifyDeployer extends BaseDeployer
      */
     public function getIsAuthorized(): bool
     {
-        return $this->_accessToken !== null;
+        return $this->accessToken !== null;
     }
 
     /**
@@ -233,18 +233,20 @@ class NetlifyDeployer extends BaseDeployer
      */
     public function getNetlifySiteOptions(): array
     {
-        $options = [[
-            'label' => Craft::t('blitz', 'None'),
-            'value' => '',
-        ]];
+        $options = [
+            [
+                'label' => Craft::t('blitz', 'None'),
+                'value' => '',
+            ],
+        ];
 
-        if ($this->_accessToken === null) {
+        if ($this->accessToken === null) {
             return $options;
         }
 
         $response = Craft::createGuzzleClient()
-            ->get($this->_apiUrl . 'sites', [
-                'query' => ['access_token' => $this->_accessToken->getToken()],
+            ->get($this->apiUrl . 'sites', [
+                'query' => ['access_token' => $this->accessToken->getToken()],
             ]);
 
         $netlifySites = Json::decodeIfJson($response->getBody()->getContents());
@@ -268,9 +270,8 @@ class NetlifyDeployer extends BaseDeployer
 
         // Check for actions
         if ($request->get('netlify') == 'authorize') {
-            $this->_oauthConnect();
-        }
-        elseif ($request->get('netlify') == 'authorized') {
+            $this->oauthConnect();
+        } elseif ($request->get('netlify') == 'authorized') {
             Craft::$app->getSession()->setNotice(Craft::t('blitz', 'Netlify account successfully authorized.'));
         }
 
@@ -278,7 +279,7 @@ class NetlifyDeployer extends BaseDeployer
         $code = $request->get('code');
 
         if ($code !== null) {
-            $this->_oauthCallback($code);
+            $this->oauthCallback($code);
         }
 
         return true;
@@ -297,25 +298,25 @@ class NetlifyDeployer extends BaseDeployer
     /**
      * Returns the provider.
      */
-    private function _getProvider(): Netlify
+    private function getProvider(): Netlify
     {
-        if ($this->_provider === null) {
-            $this->_provider = new Netlify([
+        if ($this->provider === null) {
+            $this->provider = new Netlify([
                 'clientId' => App::parseEnv($this->clientId),
                 'clientSecret' => App::parseEnv($this->clientSecret),
                 'redirectUri' => UrlHelper::cpUrl('settings/plugins/blitz'),
             ]);
         }
 
-        return $this->_provider;
+        return $this->provider;
     }
 
     /**
      * Connects to the OAuth provider.
      */
-    private function _oauthConnect()
+    private function oauthConnect(): void
     {
-        $provider = $this->_getProvider();
+        $provider = $this->getProvider();
 
         $authorizationUrl = $provider->getAuthorizationUrl();
 
@@ -330,9 +331,9 @@ class NetlifyDeployer extends BaseDeployer
      *
      * @param string $code
      */
-    private function _oauthCallback(string $code)
+    private function oauthCallback(string $code): void
     {
-        $provider = $this->_getProvider();
+        $provider = $this->getProvider();
 
         // Verify state
         $state = Craft::$app->getRequest()->get('state');
@@ -365,12 +366,11 @@ class NetlifyDeployer extends BaseDeployer
      * @param string $value
      * @param string $filePath
      */
-    private function _save(string $value, string $filePath)
+    private function save(string $value, string $filePath): void
     {
         try {
             FileHelper::writeToFile($filePath, $value);
-        }
-        catch (ErrorException|InvalidArgumentException $exception) {
+        } catch (ErrorException|InvalidArgumentException $exception) {
             Blitz::$plugin->log($exception->getMessage(), [], LogLevel::ERROR);
         }
     }
