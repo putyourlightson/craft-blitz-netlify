@@ -17,7 +17,6 @@ use craft\helpers\UrlHelper;
 use craft\web\View;
 use League\OAuth2\Client\Grant\AuthorizationCode;
 use League\OAuth2\Client\Token\AccessToken;
-use Psr\Log\LogLevel;
 use putyourlightson\blitz\Blitz;
 use putyourlightson\blitz\drivers\deployers\BaseDeployer;
 use putyourlightson\blitz\helpers\SiteUriHelper;
@@ -26,6 +25,7 @@ use Putyourlightson\OAuth2\Client\Provider\Netlify;
 use yii\base\ErrorException;
 use yii\base\Event;
 use yii\base\InvalidArgumentException;
+use yii\log\Logger;
 use yii\web\ForbiddenHttpException;
 use ZipArchive;
 
@@ -233,10 +233,12 @@ class NetlifyDeployer extends BaseDeployer
      */
     public function getNetlifySiteOptions(): array
     {
-        $options = [[
-            'label' => Craft::t('blitz', 'None'),
-            'value' => '',
-        ]];
+        $options = [
+            [
+                'label' => Craft::t('blitz', 'None'),
+                'value' => '',
+            ],
+        ];
 
         if ($this->_accessToken === null) {
             return $options;
@@ -269,8 +271,7 @@ class NetlifyDeployer extends BaseDeployer
         // Check for actions
         if ($request->get('netlify') == 'authorize') {
             $this->_oauthConnect();
-        }
-        elseif ($request->get('netlify') == 'authorized') {
+        } elseif ($request->get('netlify') == 'authorized') {
             Craft::$app->getSession()->setNotice(Craft::t('blitz', 'Netlify account successfully authorized.'));
         }
 
@@ -369,9 +370,8 @@ class NetlifyDeployer extends BaseDeployer
     {
         try {
             FileHelper::writeToFile($filePath, $value);
-        }
-        catch (ErrorException|InvalidArgumentException $exception) {
-            Blitz::$plugin->log($exception->getMessage(), [], LogLevel::ERROR);
+        } catch (ErrorException|InvalidArgumentException $exception) {
+            Blitz::$plugin->log($exception->getMessage(), [], Logger::LEVEL_ERROR);
         }
     }
 }
